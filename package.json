@@ -1,5 +1,5 @@
 {
-  "name": "@kylebarron/deck.gl-raster",
+  "name": "@twostoryrobot/deck.gl-raster",
   "description": "A collection of custom Deck.gl layers",
   "license": "MIT",
   "version": "0.3.1",
@@ -17,7 +17,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kylebarron/deck.gl-raster.git"
+    "url": "https://github.com/TwoStoryRobot/deck.gl-raster.git"
   },
   "files": [
     "dist",
