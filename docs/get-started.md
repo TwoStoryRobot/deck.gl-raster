@@ -1,13 +1,13 @@
 # Install
 
 ```
-yarn add @kylebarron/deck.gl-raster
+npm add @kylebarron/deck.gl-raster
 ```
 
 Several peer dependencies are also necessary:
 
 ```
-yarn add deck.gl @luma.gl/constants @luma.gl/core @luma.gl/engine @luma.gl/webgl
+npm add deck.gl @luma.gl/constants @luma.gl/core @luma.gl/engine @luma.gl/webgl
 ```
 
 These are listed as peer dependencies to avoid version conflicts in larger
