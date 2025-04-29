@@ -18,7 +18,7 @@ const defaultProps = {
 
 export default class RasterLayer extends BitmapLayer {
   initializeState() {
-    const {gl} = this.context;
+    const {device} = this.context;
     const programManager = ProgramManager.getDefaultProgramManager(gl);
 
     const fsStr1 = 'fs:DECKGL_MUTATE_COLOR(inout vec4 image, in vec2 coord)';
@@ -63,7 +63,7 @@ export default class RasterLayer extends BitmapLayer {
           transparentColor: transparentColor.map((x) => x / 255),
           tintColor: tintColor.slice(0, 3).map((x) => x / 255),
           coordinateConversion,
-          bounds
+          bounds,
         })
       )
       .updateModuleSettings({
@@ -86,7 +86,7 @@ export default class RasterLayer extends BitmapLayer {
 
       // Sampler type is always float for WebGL1
       if (!webgl2 && module.defines) {
-        module.defines.SAMPLER_TYPE = 'sampler2D'
+        module.defines.SAMPLER_TYPE = 'sampler2D';
       }
     }
 
@@ -101,7 +101,11 @@ export default class RasterLayer extends BitmapLayer {
 
   updateState({props, oldProps, changeFlags}) {
     // setup model first
-    const modulesChanged = props && props.modules && oldProps && !isEqual(props.modules, oldProps.modules);
+    const modulesChanged =
+      props &&
+      props.modules &&
+      oldProps &&
+      !isEqual(props.modules, oldProps.modules);
     if (changeFlags.extensionsChanged || modulesChanged) {
       const {gl} = this.context;
       if (this.state.model) {
@@ -127,7 +131,9 @@ export default class RasterLayer extends BitmapLayer {
         }
       }
       this.setState({mesh, ...this._getCoordinateUniforms()});
-    } else if (props._imageCoordinateSystem !== oldProps._imageCoordinateSystem) {
+    } else if (
+      props._imageCoordinateSystem !== oldProps._imageCoordinateSystem
+    ) {
       this.setState(this._getCoordinateUniforms());
     }
   }
