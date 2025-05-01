@@ -2,7 +2,7 @@
   "name": "@twostoryrobot/deck.gl-raster",
   "description": "A collection of custom Deck.gl layers",
   "license": "MIT",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "type": "module",
   "main": "./dist/deck.gl-raster.umd.js",
   "module": "./dist/deck.gl-raster.mjs",
