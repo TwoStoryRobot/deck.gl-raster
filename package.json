@@ -3,8 +3,19 @@
   "description": "A collection of custom Deck.gl layers",
   "license": "MIT",
   "version": "0.3.1",
-  "main": "./dist/dist.js",
-  "unpkg": "./dist/dist.min.js",
+  "type": "module",
+  "main": "./dist/deck.gl-raster.umd.js",
+  "module": "./dist/deck.gl-raster.mjs",
+  "types": "./dist/deck.gl-raster.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/deck.gl-raster.d.ts",
+      "import": "./dist/deck.gl-raster.mjs",
+      "require": "./dist/deck.gl-raster.umd.js",
+      "unpkg": "./dist/deck.gl-raster.umd.js",
+      "default": "./dist/deck.gl-raster.umd.js"
+    }
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -30,7 +41,8 @@
     "build-docs": "npm build-examples && npm clean-docs && cp -r examples/raster-layer/build docs/examples/raster-layer && cp -r examples/raster-mesh-layer/build docs/examples/raster-mesh-layer && mkdocs build",
     "clean-docs": "rm -rf docs/examples/raster-layer docs/examples/raster-mesh-layer",
     "deploy-docs": "npm build-docs && mkdocs gh-deploy",
-    "format": "prettier src/ --write"
+    "format": "prettier src/ --write",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "lodash.isequal": "^4.5.0"
@@ -42,14 +54,20 @@
     "@luma.gl/constants": "^9.1.9",
     "@luma.gl/core": "^9.1.9",
     "@luma.gl/engine": "^9.1.9",
+    "@luma.gl/shadertools": "^9.1.9",
     "@luma.gl/webgl": "^9.1.9"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^18.0.0",
-    "@rollup/plugin-node-resolve": "^11.2.1",
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/lodash.isequal": "^4.5.8",
     "prettier": "^2.1.1",
-    "rollup": "^2.7.2",
+    "rollup": "^4.40.1",
+    "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-glsl": "^1.3.0",
-    "rollup-plugin-terser": "^5.3.0"
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3"
   }
 }

@@ -1,0 +1,23 @@
+{
+  "include": [
+    "src"
+  ],
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "ES2015",
+    "lib": [
+      "es5",
+      "es2023",
+      "dom"
+    ],
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "types": [
+      "./src/@types/glsl.d.ts"
+    ]
+  }
+}
