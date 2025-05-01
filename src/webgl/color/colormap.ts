@@ -1,26 +1,43 @@
+import { Texture, Sampler } from '@luma.gl/core';
+import {ShaderModule, } from '@luma.gl/shadertools';
+
 import fs from './colormap.fs.glsl';
 
-function getUniforms(opts = {}) {
-  const {imageColormap, colormapScaler, colormapOffset} = opts;
-
-  if (!imageColormap) {
-    return;
-  }
-
-  return {
-    u_colormap_texture: imageColormap,
-    colormapScaler: Number.isFinite(colormapScaler) ? colormapScaler : 0.5,
-    colormapOffset: Number.isFinite(colormapOffset) ? colormapOffset : 0.5,
-  };
+type ColormapUniforms = {
+  scale: number,
+  offset: number,
 }
+
+type ColormapBindings = {
+  u_colormap_texture: Texture
+}
+
+type ColormapProps = {
+  image: Texture ,
+  scale: number,
+  offset: number,
+}
+
 
 export default {
   name: 'colormap',
   fs,
-  getUniforms,
+  getUniforms(props) {
+    const {image, scale, offset} = props;
+
+    return {
+      u_colormap_texture: image,
+      scale: Number.isFinite(scale) ? scale : 0.5,
+      offset: Number.isFinite(offset) ? offset : 0.5,
+    };
+  },
   inject: {
     'fs:DECKGL_MUTATE_COLOR': `
-    image = colormap(u_colormap_texture, image, colormapScaler, colormapOffset);
+      image = apply_colormap(u_colormap_texture, image, colormap.scale, colormap.offset);
     `,
   },
-};
+  uniformTypes: {
+    scale: 'f32',
+    offset: 'f32',
+  },
+} as const satisfies ShaderModule<ColormapProps, ColormapUniforms, ColormapBindings>;

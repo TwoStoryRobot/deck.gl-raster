@@ -8,8 +8,6 @@ in vec3 positions64Low;
 out vec2 vTexCoord;
 out vec2 vTexPos;
 
-uniform mediump float coordinateConversion;
-
 const vec3 pickingColor = vec3(1.0, 0.0, 0.0);
 
 void main(void) {
@@ -22,9 +20,9 @@ void main(void) {
 
   vTexCoord = texCoords;
 
-  if (coordinateConversion < -0.5) {
-    vTexPos = geometry.position.xy;
-  } else if (coordinateConversion > 0.5) {
+  if (bitmap.coordinateConversion < -0.5) {
+    vTexPos = geometry.position.xy + project.commonOrigin.xy;
+  } else if (bitmap.coordinateConversion > 0.5) {
     vTexPos = geometry.worldPosition.xy;
   }
 

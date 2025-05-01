@@ -1,25 +1,60 @@
-import {BitmapLayer} from '@deck.gl/layers';
-import {ProgramManager} from '@luma.gl/engine';
-import {isWebGL2} from '@luma.gl/core';
+import {BitmapLayer, BitmapLayerProps} from '@deck.gl/layers';
+import {
+  DefaultProps,
+  Layer,
+  LayerContext,
+  UpdateParameters,
+} from '@deck.gl/core';
+import {ShaderAssembler, ShaderModule} from '@luma.gl/shadertools';
+import {Texture, TextureProps} from '@luma.gl/core';
+import {AsyncTexture, AsyncTextureProps} from '@luma.gl/engine';
 import isEqual from 'lodash.isequal';
 
 import {loadImages} from '../images';
-import fsWebGL1 from './raster-layer-webgl1.fs.glsl';
-import fsWebGL2 from './raster-layer-webgl2.fs.glsl';
-import vsWebGL1 from './raster-layer-webgl1.vs.glsl';
-import vsWebGL2 from './raster-layer-webgl2.vs.glsl';
+import fs from './raster-layer-webgl2.fs.glsl';
+import vs from './raster-layer-webgl2.vs.glsl';
 
-const defaultProps = {
-  ...BitmapLayer.defaultProps,
-  modules: {type: 'array', value: [], compare: true},
-  images: {type: 'object', value: {}, compare: true},
-  moduleProps: {type: 'object', value: {}, compare: true},
+export type AnyTexture = Texture | AsyncTexture;
+export type AnyTextureProps = (Omit<TextureProps, 'data'> | Omit<AsyncTextureProps, 'data'>) & {
+  data?: string | TextureProps['data'] | AsyncTextureProps['data'];
 };
 
-export default class RasterLayer extends BitmapLayer {
+type ExtractShaderModuleProps<Type> = Type extends ShaderModule<infer P, any, any> ? P : {}
+
+type ModuleProps<M extends readonly ShaderModule[]> = {
+  [K in M[number]['name']]: Partial<Omit<ExtractShaderModuleProps<Extract<M[number], {name: K}>>, 'image'>>
+}
+
+type ImageMap<M extends readonly ShaderModule[]> = {
+  [P in M[number]['name']]: AnyTexture | AnyTextureProps | (AnyTexture | AnyTextureProps)[]
+}
+
+export type LoadedImageMap<M extends readonly ShaderModule[]> = {
+  [P in M[number]['name']]: AnyTexture | AnyTexture[]
+}
+
+export type RasterLayerProps<M extends readonly ShaderModule[]> = Omit<BitmapLayerProps, 'image'> & {
+  modules: M;
+  images: Partial<ImageMap<M>>;
+  moduleProps: Partial<ModuleProps<M>>
+};
+
+export default class RasterLayer<const M extends ShaderModule[]> extends BitmapLayer<RasterLayerProps<M>> {
+  state!: BitmapLayer['state'] & {
+    images: Partial<LoadedImageMap<M>>;
+  };
+
+  static layerName = 'RasterLayer';
+
+  static defaultProps: DefaultProps<RasterLayerProps<[]>> = {
+    ...BitmapLayer.defaultProps,
+    modules: {type: 'array', value: [], compare: true},
+    images: {type: 'object', value: {}, compare: true},
+    moduleProps: {type: 'object', value: {}, compare: true},
+  };
+
   initializeState() {
-    const {device} = this.context;
-    const programManager = ProgramManager.getDefaultProgramManager(gl);
+    const shaderAssembler = ShaderAssembler.getDefaultShaderAssembler();
 
     const fsStr1 = 'fs:DECKGL_MUTATE_COLOR(inout vec4 image, in vec2 coord)';
     const fsStr2 = 'fs:DECKGL_CREATE_COLOR(inout vec4 image, in vec2 coord)';
@@ -28,11 +63,11 @@ export default class RasterLayer extends BitmapLayer {
     // Since the program manager is shared across all layers, but many layers
     // might be created, this solves the performance issue of always adding new
     // hook functions. See #22
-    if (!programManager._hookFunctions.includes(fsStr1)) {
-      programManager.addShaderHook(fsStr1);
+    if (!shaderAssembler['_hookFunctions'].includes(fsStr1)) {
+      shaderAssembler.addShaderHook(fsStr1);
     }
-    if (!programManager._hookFunctions.includes(fsStr2)) {
-      programManager.addShaderHook(fsStr2);
+    if (!shaderAssembler['_hookFunctions'].includes(fsStr2)) {
+      shaderAssembler.addShaderHook(fsStr2);
     }
 
     // images is a mapping from keys to Texture2D objects. The keys should match
@@ -42,9 +77,24 @@ export default class RasterLayer extends BitmapLayer {
     super.initializeState();
   }
 
-  draw({uniforms}) {
-    const {model, images, coordinateConversion, bounds} = this.state;
-    const {desaturate, transparentColor, tintColor, moduleProps} = this.props;
+  draw(opts: Parameters<Layer['draw']>[0]) {
+    const {
+      model,
+      images,
+      coordinateConversion,
+      bounds,
+      disablePicking,
+    } = this.state;
+    const {
+      moduleProps,
+      desaturate,
+      transparentColor,
+      tintColor,
+    } = this.props;
+
+    if (opts.shaderModuleProps.picking.isActive && disablePicking) {
+      return;
+    }
 
     // Render the image
     if (
@@ -56,50 +106,55 @@ export default class RasterLayer extends BitmapLayer {
       return;
     }
 
-    model
-      .setUniforms(
-        Object.assign({}, uniforms, {
-          desaturate,
-          transparentColor: transparentColor.map((x) => x / 255),
-          tintColor: tintColor.slice(0, 3).map((x) => x / 255),
-          coordinateConversion,
-          bounds,
-        })
-      )
-      .updateModuleSettings({
-        ...moduleProps,
-        ...images,
+    const merged = Object.fromEntries(
+      Object.entries(images).map(([key, image]) => {
+        const moduleName = key as M[number]['name']
+        return [
+          key,
+          {
+            image,
+            ...moduleProps[moduleName],
+          },
+        ];
       })
-      .draw();
+    );
+
+    model.shaderInputs.options.disableWarnings = false;
+    model.shaderInputs.setProps({
+      ...merged,
+      bitmap: {
+        bounds,
+        coordinateConversion,
+        desaturate,
+        tintColor: tintColor.slice(0, 3).map((x) => x / 255) as [
+          number,
+          number,
+          number
+        ],
+        transparentColor: transparentColor.map((x) => x / 255) as [
+          number,
+          number,
+          number,
+          number
+        ],
+      },
+    });
+    model.draw(this.context.renderPass);
   }
 
   getShaders() {
-    const {gl} = this.context;
     const {modules = []} = this.props;
-    const webgl2 = isWebGL2(gl);
-
-    // Choose webgl version for module
-    // If fs2 or fs1 keys exist, prefer them, but fall back to fs, so that
-    // version-independent modules don't need to care
-    for (const module of modules) {
-      module.fs = webgl2 ? module.fs2 || module.fs : module.fs1 || module.fs;
-
-      // Sampler type is always float for WebGL1
-      if (!webgl2 && module.defines) {
-        module.defines.SAMPLER_TYPE = 'sampler2D';
-      }
-    }
 
     const parentShaders = super.getShaders();
     return {
       ...parentShaders,
-      vs: webgl2 ? vsWebGL2 : vsWebGL1,
-      fs: webgl2 ? fsWebGL2 : fsWebGL1,
+      vs,
+      fs,
       modules: [...parentShaders.modules, ...modules],
     };
   }
 
-  updateState({props, oldProps, changeFlags}) {
+  updateState({props, oldProps, changeFlags}: UpdateParameters<RasterLayer<M>>) {
     // setup model first
     const modulesChanged =
       props &&
@@ -107,11 +162,10 @@ export default class RasterLayer extends BitmapLayer {
       oldProps &&
       !isEqual(props.modules, oldProps.modules);
     if (changeFlags.extensionsChanged || modulesChanged) {
-      const {gl} = this.context;
       if (this.state.model) {
-        this.state.model.delete();
+        this.state.model.destroy();
       }
-      this.setState({model: this._getModel(gl)});
+      this.setState({model: this._getModel()});
       this.getAttributeManager().invalidateAll();
     }
 
@@ -124,9 +178,9 @@ export default class RasterLayer extends BitmapLayer {
     if (props.bounds !== oldProps.bounds) {
       const oldMesh = this.state.mesh;
       const mesh = this._createMesh();
-      this.state.model.setVertexCount(mesh.vertexCount);
+      this.state.model!.setVertexCount(mesh.vertexCount);
       for (const key in mesh) {
-        if (oldMesh && oldMesh[key] !== mesh[key]) {
+        if (oldMesh && oldMesh[key] !== mesh[key as keyof typeof mesh]) {
           attributeManager.invalidate(key);
         }
       }
@@ -138,30 +192,35 @@ export default class RasterLayer extends BitmapLayer {
     }
   }
 
-  updateImages({props, oldProps}) {
+  updateImages({
+    props,
+    oldProps,
+  }: Pick<UpdateParameters<RasterLayer<M>>, 'props' | 'oldProps'>) {
     const {images} = this.state;
-    const {gl} = this.context;
 
-    const newImages = loadImages({gl, images, props, oldProps});
+    const newImages = loadImages({
+      device: this.context.device,
+      images,
+      props,
+      oldProps,
+    });
     if (newImages) {
       this.setState({images: newImages});
     }
   }
 
-  finalizeState() {
-    super.finalizeState();
+  finalizeState(context: LayerContext) {
+    super.finalizeState(context);
+
 
     if (this.state.images) {
-      for (const image of Object.values(this.state.images)) {
+      for (const image of Object.values<LoadedImageMap<M>[keyof LoadedImageMap<M>]>(this.state.images)) {
         if (Array.isArray(image)) {
-          image.map((x) => x && x.delete());
+          image.map((x) => x && x.destroy());
         } else {
-          image && image.delete();
+          image && image.destroy();
         }
       }
     }
   }
 }
-
-RasterLayer.defaultProps = defaultProps;
-RasterLayer.layerName = 'RasterLayer';
