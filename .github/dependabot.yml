@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: monthly
+      time: '08:00'
+      timezone: America/Vancouver
+    open-pull-requests-limit: 10
+    reviewers:
+      - '@TwoStoryRobot/wildfire'
