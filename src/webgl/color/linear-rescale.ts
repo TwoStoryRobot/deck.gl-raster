@@ -24,7 +24,7 @@ export default {
   },
   inject: {
     'fs:DECKGL_MUTATE_COLOR': `
-    image = linear_rescale(image, linerRescale.scale, linearRescale.offset);
+    image = linear_rescale(image, linearRescale.scale, linearRescale.offset);
     `,
   },
   uniformTypes: {
