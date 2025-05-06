@@ -1,25 +1,38 @@
+import {ShaderModule} from '@luma.gl/shadertools';
 import fs from './linear-rescale.fs.glsl';
 
-function getUniforms(opts = {}) {
-  const {linearRescaleScaler, linearRescaleOffset} = opts;
+type LinearRescaleUniforms = {
+  scale: number;
+  offset: number;
+};
 
-  if (!linearRescaleScaler && !linearRescaleOffset) {
-    return;
-  }
-
-  return {
-    linearRescaleScaler: linearRescaleScaler || 1,
-    linearRescaleOffset: linearRescaleOffset || 0,
-  };
-}
+type LinearRescaleProps = {
+  scale: number;
+  offset: number;
+};
 
 export default {
-  name: 'linear_rescale',
+  name: 'linearRescale',
   fs,
-  getUniforms,
+  getUniforms(opts = {}) {
+    const {scale, offset} = opts;
+
+    return {
+      scale: scale || 1,
+      offset: offset || 0,
+    };
+  },
   inject: {
     'fs:DECKGL_MUTATE_COLOR': `
-    image = linear_rescale(image, linearRescaleScaler, linearRescaleOffset);
+    image = linear_rescale(image, linerRescale.scale, linearRescale.offset);
     `,
   },
-};
+  uniformTypes: {
+    scale: 'f32',
+    offset: 'f32',
+  },
+} as const satisfies ShaderModule<
+  LinearRescaleProps,
+  LinearRescaleUniforms,
+  {}
+>;

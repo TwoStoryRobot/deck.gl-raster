@@ -1,9 +1,12 @@
 #define epsilon 0.00000001
 
-uniform float gamma_r;
-uniform float gamma_g;
-uniform float gamma_b;
-uniform float gamma_a;
+
+uniform gammaContrastUniforms {
+  uniform float r;
+  uniform float g;
+  uniform float b;
+  uniform float a;
+} gamma;
 
 // Gamma correction is a nonlinear operation that
 // adjusts the image's channel values pixel-by-pixel according
