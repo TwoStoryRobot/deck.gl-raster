@@ -11,9 +11,7 @@
     ".": {
       "types": "./dist/deck.gl-raster.d.ts",
       "import": "./dist/deck.gl-raster.mjs",
-      "require": "./dist/deck.gl-raster.umd.js",
-      "unpkg": "./dist/deck.gl-raster.umd.js",
-      "default": "./dist/deck.gl-raster.umd.js"
+      "require": "./dist/deck.gl-raster.umd.js"
     }
   },
   "publishConfig": {
