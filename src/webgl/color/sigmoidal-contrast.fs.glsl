@@ -1,7 +1,9 @@
 #define epsilon 0.00000001
 
-uniform float sigmoidal_contrast;
-uniform float sigmoidal_bias;
+uniform signmoidalContrastUniforms {
+  uniform float contrast;
+  uniform float bias;
+} sigmoidalContrast;
 
 // From mapbox/rio-color under the MIT License
 //
@@ -39,7 +41,7 @@ uniform float sigmoidal_bias;
 
 // NOTE: Input array must have float values between 0 and 1!
 // NOTE: bias must be a scalar float between 0 and 1!
-vec4 sigmoidalContrast(vec4 arr, float contrast, float bias) {
+vec4 sigmoidal_contrast(vec4 arr, float contrast, float bias) {
   // We use the names alpha and beta to match documentation.
   float alpha = bias;
   float beta = contrast;

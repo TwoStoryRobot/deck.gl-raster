@@ -1,25 +1,38 @@
+import {ShaderModule} from '@luma.gl/shadertools';
 import fs from './sigmoidal-contrast.fs.glsl';
 
-function getUniforms(opts = {}) {
-  const {sigmoidalContrast, sigmoidalBias} = opts;
+type SigmoidalContrastUniforms = {
+  contrast: number;
+  bias: number;
+};
 
-  if (!sigmoidalContrast && !sigmoidalBias) {
-    return;
-  }
-
-  return {
-    sigmoidal_contrast: sigmoidalContrast || 0,
-    sigmoidal_bias: sigmoidalBias || 0.5,
-  };
-}
+type SigmoidalContrastProps = {
+  contrast: number;
+  bias: number;
+};
 
 export default {
-  name: 'sigmoidal_contrast',
+  name: 'sigmoidalContrast',
   fs,
-  getUniforms,
+  getUniforms(opts = {}) {
+    const {contrast, bias} = opts;
+
+    return {
+      contrast: contrast ?? 0,
+      bias: bias ?? 0.5,
+    };
+  },
   inject: {
     'fs:DECKGL_MUTATE_COLOR': `
-    image = sigmoidalContrast(image, sigmoidal_contrast, sigmoidal_bias);
+    image = sigmoidal_contrast(image, sigmoidalContrast.contrast, sigmoidalContrast.bias);
     `,
   },
-};
+  uniformTypes: {
+    contrast: 'f32',
+    bias: 'f32',
+  },
+} as const satisfies ShaderModule<
+  SigmoidalContrastProps,
+  SigmoidalContrastUniforms,
+  {}
+>;

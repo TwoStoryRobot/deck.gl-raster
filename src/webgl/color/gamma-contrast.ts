@@ -1,27 +1,40 @@
+import {ShaderModule} from '@luma.gl/shadertools';
 import fs from './gamma-contrast.fs.glsl';
 
-function getUniforms(opts = {}) {
-  const {gammaValue, gammaR, gammaG, gammaB, gammaA} = opts;
+type GammaContrastUniforms = {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+};
 
-  if (!gammaValue && (!gammaR && !gammaG && !gammaB && !gammaA)) {
-    return;
-  }
-
-  return {
-    gamma_r: gammaR || 1,
-    gamma_g: gammaG || 1,
-    gamma_b: gammaB || 1,
-    gamma_a: gammaA || 1,
-  };
-}
+type GammaContrastProps = {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+};
 
 export default {
-  name: 'gamma_contrast',
+  name: 'gammaContrast',
   fs,
-  getUniforms,
+  getUniforms(opts = {}) {
+    const {r, g, b, a} = opts;
+
+    return {
+      r: r ?? 1,
+      g: g ?? 1,
+      b: b ?? 1,
+      a: a ?? 1,
+    };
+  },
   inject: {
     'fs:DECKGL_MUTATE_COLOR': `
-    image = gammaContrast(image, gamma_r, gamma_g, gamma_b, gamma_a);
+    image = gammaContrast(image, gamma.r, gamma.g, gamma.b, gamma.a);
     `,
   },
-};
+} as const satisfies ShaderModule<
+  GammaContrastProps,
+  GammaContrastUniforms,
+  {}
+>;

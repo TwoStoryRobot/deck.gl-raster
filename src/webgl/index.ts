@@ -6,8 +6,8 @@ export {default as maskImage} from './texture/mask-image';
 // Color operations
 export {default as colormap} from './color/colormap';
 export {default as linearRescale} from './color/linear-rescale';
-// export {default as sigmoidalContrast} from './color/sigmoidal-contrast';
-// export {default as gammaContrast} from './color/gamma-contrast';
+export {default as sigmoidalContrast} from './color/sigmoidal-contrast';
+export {default as gammaContrast} from './color/gamma-contrast';
 
 // Pansharpening
 export {default as pansharpenBrovey} from './pansharpen/pansharpen-brovey';
