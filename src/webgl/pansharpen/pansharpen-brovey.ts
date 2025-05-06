@@ -1,31 +1,45 @@
-import fs1 from './pansharpen-brovey-webgl1.fs.glsl';
-import fs2 from './pansharpen-brovey-webgl2.fs.glsl';
+import {Texture} from '@luma.gl/core';
+import fs from './pansharpen-brovey.fs.glsl';
+import {ShaderModule} from '@luma.gl/shadertools';
 
-function getUniforms(opts = {}) {
-  const {imagePan, panWeight = 0.2} = opts;
+type PansharpenBroveyUniforms = {
+  panWeight: number;
+};
 
-  if (!imagePan) {
-    return;
-  }
+type PansharpenBroveyBindings = {
+  bitmapTexure_pan: Texture;
+};
 
-  return {
-    bitmapTexture_pan: imagePan,
-    panWeight,
-  };
-}
+type PansharpenBroveyProps = {
+  image: Texture;
+  panWeight: number;
+};
 
 export default {
-  name: 'pansharpen_brovey',
-  fs1,
-  fs2,
+  name: 'pansharpenBrovey',
+  fs,
   defines: {
     SAMPLER_TYPE: 'sampler2D',
   },
-  getUniforms,
+  getUniforms(opts) {
+    const {image, panWeight = 0.2} = opts;
+
+    return {
+      bitmapTexture_pan: image,
+      panWeight,
+    };
+  },
   inject: {
     'fs:DECKGL_MUTATE_COLOR': `
-    float pan_band = float(texture2D(bitmapTexture_pan, coord).r);
-    image = pansharpen_brovey_calc(image, pan_band, panWeight);
+    float pan_band = float(texture(bitmapTexture_pan, coord).r);
+    image = pansharpen_brovey_calc(image, pan_band, pansharpen.panWeight);
     `,
   },
-};
+  uniformTypes: {
+    panWeight: 'f32',
+  },
+} as const satisfies ShaderModule<
+  PansharpenBroveyProps,
+  PansharpenBroveyUniforms,
+  PansharpenBroveyBindings
+>;

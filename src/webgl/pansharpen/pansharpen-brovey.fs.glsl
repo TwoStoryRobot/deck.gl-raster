@@ -6,7 +6,9 @@ precision mediump usampler2D;
   uniform sampler2D bitmapTexture_pan;
 #endif
 
-uniform float panWeight;
+uniform pansharpenUniforms {
+  uniform float panWeight;
+} pansharpen;
 
 float pansharpen_brovey_ratio(vec4 rgb, float pan, float weight) {
   return pan / ((rgb.r + rgb.g + rgb.b * weight) / (2. + weight));

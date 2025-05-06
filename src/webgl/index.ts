@@ -10,7 +10,7 @@ export {default as colormap} from './color/colormap';
 // export {default as gammaContrast} from './color/gamma-contrast';
 
 // Pansharpening
-// export {default as pansharpenBrovey} from './pansharpen/pansharpen-brovey';
+export {default as pansharpenBrovey} from './pansharpen/pansharpen-brovey';
 
 // Spectral indices
 // export {default as enhancedVegetationIndex} from './spectral-indices/evi';
