@@ -9,4 +9,4 @@ export default {
     image = vec4(normalized_difference_calc(image), 0., 0., 0.);
     `,
   },
-} as const satisfies ShaderModule<never, never, never>;
+} as const satisfies ShaderModule<{}, {}, {}>;
