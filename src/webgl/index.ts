@@ -19,4 +19,4 @@ export {default as normalizedDifference} from './spectral-indices/normalized-dif
 export {default as soilAdjustedVegetationIndex} from './spectral-indices/savi';
 
 // Vector operations
-// export {default as vectorLength} from './vector/vector-length';
+export {default as vectorLength} from './vector/vector-length';
