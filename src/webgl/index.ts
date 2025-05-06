@@ -14,8 +14,8 @@ export {default as pansharpenBrovey} from './pansharpen/pansharpen-brovey';
 
 // Spectral indices
 // export {default as enhancedVegetationIndex} from './spectral-indices/evi';
-// export {default as modifiedSoilAdjustedVegetationIndex} from './spectral-indices/msavi';
-// export {default as normalizedDifference} from './spectral-indices/normalized-difference';
+export {default as modifiedSoilAdjustedVegetationIndex} from './spectral-indices/msavi';
+export {default as normalizedDifference} from './spectral-indices/normalized-difference';
 // export {default as soilAdjustedVegetationIndex} from './spectral-indices/savi';
 
 // Vector operations
